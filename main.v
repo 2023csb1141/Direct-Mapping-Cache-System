@@ -1,4 +1,4 @@
-module CacheLine #(parameter DATA_WIDTH = 32, TAG_WIDTH = 8) (
+module CacheLine #(parameter DATA_WIDTH = 16, TAG_WIDTH = 8) (
     input wire [DATA_WIDTH-1:0] data_in,
     input wire [TAG_WIDTH-1:0] tag_in,
     input wire valid_in,
@@ -23,14 +23,12 @@ endmodule
 
 
 parameter CACHE_SIZE = 16;       // Number of cache lines
-parameter DATA_WIDTH = 32;       // Data width in bits
+parameter DATA_WIDTH = 16;       // Data width in bits
 parameter TAG_WIDTH = 8;         // Tag width in bits
 
 reg [DATA_WIDTH-1:0] data_array[CACHE_SIZE-1:0];
 reg [TAG_WIDTH-1:0] tag_array[CACHE_SIZE-1:0];
 reg valid_array[CACHE_SIZE-1:0];
-
-
 
 parameter ADDR_WIDTH = 16;
 parameter INDEX_WIDTH = 4;  // Log2(CACHE_SIZE) if CACHE_SIZE = 16
@@ -40,11 +38,11 @@ input [ADDR_WIDTH-1:0] address;
 wire [TAG_WIDTH-1:0] tag = address[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH];
 wire [INDEX_WIDTH-1:0] index = address[INDEX_WIDTH-1:0];
 
-
-
+module Read_cache (
 input [ADDR_WIDTH-1:0] address;
 output reg [DATA_WIDTH-1:0] data_out;
 output reg cache_hit;
+)
 
 always @(address) begin
     if (valid_array[index] && (tag_array[index] == tag)) begin
@@ -55,6 +53,7 @@ always @(address) begin
         cache_hit = 0;
     end
 end
+endmodule
 
 
 
