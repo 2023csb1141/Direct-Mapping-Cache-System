@@ -1,0 +1,120 @@
+        #10 tag = 16'h42bb;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5b1f;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'hc1d2;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'hc1d2;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5473;
+        offset = 2'b01;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h42bb;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'hc1d2;
+        offset = 2'b01;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5b1f;
+        offset = 2'b00;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5b1f;
+        offset = 2'b01;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5b1f;
+        offset = 2'b00;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h42bb;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'hc1d2;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5b1f;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5473;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h42bb;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'hc1d2;
+        offset = 2'b00;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'hc1d2;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5473;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h42bb;
+        offset = 2'b11;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
+        #10 tag = 16'h5473;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+
