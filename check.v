@@ -1,169 +1,187 @@
-module CacheLine #(parameter BLOCK_SIZE = 16, TAG_WIDTH = 8) (
-    input wire clk,
-    input wire reset,
-    input wire write_enable,
-    input wire valid_in,
-    input wire [TAG_WIDTH-1:0] tag_in,
-    input wire [BLOCK_SIZE*8-1:0] data_in,
-    output reg valid_out,
-    output reg [TAG_WIDTH-1:0] tag_out,
-    output reg [BLOCK_SIZE*8-1:0] data_out
+module main(
+    input clk,
+    input reset,
+    input read,
+    input write,
+    input [TAG_WIDTH-1:0] tag,
+    input [OFFSET_WIDTH-1:0] offset,  // Added offset input
+    input [DATA_WIDTH-1:0] data_in,
+    output reg [DATA_WIDTH-1:0] data_out,
+    output reg cache_hit,
+    output reg cache_miss,
+    output reg [31:0] hit_counter,
+    output reg [31:0] miss_counter,
+    output reg [31:0] total_requests
 );
+
+    parameter DATA_WIDTH = 16;
+    parameter TAG_WIDTH = 16;
+    parameter CACHE_SIZE = 16;
+    parameter BLOCK_SIZE = 4;       // Number of words per block
+    parameter OFFSET_WIDTH = 2;     // log2(BLOCK_SIZE)
+
+    localparam INDEX_WIDTH = $clog2(CACHE_SIZE);
+
+    wire [INDEX_WIDTH-1:0] index = tag[INDEX_WIDTH-1:0];
+
+    // Cache storage
+    reg [DATA_WIDTH-1:0] data_array [CACHE_SIZE-1:0][BLOCK_SIZE-1:0]; // Cache stores blocks
+    reg [TAG_WIDTH-1:0] tag_array [CACHE_SIZE-1:0];
+    reg valid_array [CACHE_SIZE-1:0];
+
+    // Main memory simulation
+    reg [DATA_WIDTH-1:0] main_memory [0:(1 << TAG_WIDTH)-1][BLOCK_SIZE-1:0]; // Main memory stores blocks
+
+    integer i, j;
+
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            valid_out <= 0;
-            tag_out <= 0;
-            data_out <= 0;
-        end else if (write_enable) begin
-            valid_out <= valid_in;
-            tag_out <= tag_in;
-            data_out <= data_in;
-        end
-    end
-endmodule
-
-
-
-
-module DirectMappedCache #(parameter ADDR_WIDTH = 16, BLOCK_SIZE = 16, CACHE_LINES = 16) (
-    input wire clk,
-    input wire reset,
-    input wire read_enable,
-    input wire write_enable,
-    input wire [ADDR_WIDTH-1:0] address,
-    input wire [BLOCK_SIZE*8-1:0] write_data,
-    output reg [BLOCK_SIZE*8-1:0] read_data,
-    output reg hit_miss_indicator,  // 1 for hit, 0 for miss
-    output reg [31:0] total_requests,
-    output reg [31:0] hits,
-    output reg [31:0] misses
-);
-    // Derived parameters
-    localparam OFFSET_WIDTH = $clog2(BLOCK_SIZE);  // Block offset bits
-    localparam INDEX_WIDTH = $clog2(CACHE_LINES); // Index bits
-    localparam TAG_WIDTH = ADDR_WIDTH - OFFSET_WIDTH - INDEX_WIDTH;
-
-    // Split address into tag, index, and offset
-    wire [TAG_WIDTH-1:0] tag = address[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH];
-    wire [INDEX_WIDTH-1:0] index = address[OFFSET_WIDTH+INDEX_WIDTH-1:OFFSET_WIDTH];
-    wire [OFFSET_WIDTH-1:0] offset = address[OFFSET_WIDTH-1:0];
-
-    // Cache lines
-    reg [BLOCK_SIZE*8-1:0] main_memory [0:(1<<ADDR_WIDTH)-1]; // Simulated main memory
-    wire valid_out;
-    wire [TAG_WIDTH-1:0] tag_out;
-    wire [BLOCK_SIZE*8-1:0] data_out;
-    reg write_enable_cache;
-    reg valid_in;
-    reg [TAG_WIDTH-1:0] tag_in;
-    reg [BLOCK_SIZE*8-1:0] data_in;
-
-    CacheLine #(BLOCK_SIZE, TAG_WIDTH) cache_lines[CACHE_LINES-1:0] (
-        .clk(clk),
-        .reset(reset),
-        .write_enable(write_enable_cache),
-        .valid_in(valid_in),
-        .tag_in(tag_in),
-        .data_in(data_in),
-        .valid_out(valid_out),
-        .tag_out(tag_out),
-        .data_out(data_out)
-    );
-
-    // Cache operation
-    always @(posedge clk or posedge reset) begin
-        if (reset) begin
-            total_requests <= 0;
-            hits <= 0;
-            misses <= 0;
-        end else begin
-            total_requests <= total_requests + 1;
-            if (read_enable || write_enable) begin
-                if (valid_out && tag_out == tag) begin
-                    // Cache hit
-                    hit_miss_indicator <= 1;
-                    hits <= hits + 1;
-                    if (read_enable) begin
-                        read_data <= data_out;
-                    end
-                    if (write_enable) begin
-                        write_enable_cache <= 1;
-                        valid_in <= 1;
-                        tag_in <= tag;
-                        data_in <= write_data;
-                    end
-                end else begin
-                    // Cache miss
-                    hit_miss_indicator <= 0;
-                    misses <= misses + 1;
-                    // Load from main memory
-                    write_enable_cache <= 1;
-                    valid_in <= 1;
-                    tag_in <= tag;
-                    data_in <= main_memory[{tag, index}];
+            // Initialize cache and counters
+            for (i = 0; i < CACHE_SIZE; i = i + 1) begin
+                valid_array[i] <= 0;
+                tag_array[i] <= 0;
+                for (j = 0; j < BLOCK_SIZE; j = j + 1) begin
+                    data_array[i][j] <= 0;
                 end
             end
+            hit_counter <= 0;
+            miss_counter <= 0;
+            total_requests <= 0;
+        end else if (read) begin
+            if (valid_array[index] && tag_array[index] == tag) begin
+                // Cache hit
+                cache_hit <= 1;
+                cache_miss <= 0;
+                hit_counter <= hit_counter + 1;
+                total_requests <= total_requests + 1;
+                data_out <= data_array[index][offset]; // Fetch data using offset
+            end else begin
+                // Cache miss
+                cache_hit <= 0;
+                cache_miss <= 1;
+                miss_counter <= miss_counter + 1;
+                total_requests <= total_requests + 1;
+
+                // Fetch block from main memory
+                for (j = 0; j < BLOCK_SIZE; j = j + 1) begin
+                    data_array[index][j] <= main_memory[tag][j];
+                end
+                tag_array[index] <= tag;
+                valid_array[index] <= 1;
+
+                // Output fetched data
+                data_out <= main_memory[tag][offset]; // Use offset to select word from fetched block
+            end
+        end else if (write) begin
+            // Write to specific word in block
+            data_array[index][offset] <= data_in;
+            tag_array[index] <= tag;
+            valid_array[index] <= 1;
+            total_requests <= total_requests + 1;
         end
     end
 endmodule
+`timescale 1ns / 1ps
 
+module main_tb;
+    // Parameters
+    parameter DATA_WIDTH = 16;
+    parameter TAG_WIDTH = 16;
+    parameter CACHE_SIZE = 16;
+    parameter BLOCK_SIZE = 4;
+    parameter OFFSET_WIDTH = 2;
 
+    // Clock and reset
+    reg clk;
+    reg reset;
 
+    // Inputs
+    reg read;
+    reg write;
+    reg [TAG_WIDTH-1:0] tag;
+    reg [OFFSET_WIDTH-1:0] offset; // Offset for block
+    reg [DATA_WIDTH-1:0] data_in;
 
-module Testbench;
-    parameter ADDR_WIDTH = 16;
-    parameter BLOCK_SIZE = 16;
-    parameter CACHE_LINES = 16;
+    // Outputs
+    wire [DATA_WIDTH-1:0] data_out;
+    wire cache_hit;
+    wire cache_miss;
+    wire [31:0] hit_counter;
+    wire [31:0] miss_counter;
+    wire [31:0] total_requests;
 
-    reg clk, reset, read_enable, write_enable;
-    reg [ADDR_WIDTH-1:0] address;
-    reg [BLOCK_SIZE*8-1:0] write_data;
-    wire [BLOCK_SIZE*8-1:0] read_data;
-    wire hit_miss_indicator;
-    wire [31:0] total_requests, hits, misses;
-
-    // Instantiate the cache
-    DirectMappedCache #(ADDR_WIDTH, BLOCK_SIZE, CACHE_LINES) cache (
+    // Instantiate the DUT (Device Under Test)
+    main #(
+        .TAG_WIDTH(TAG_WIDTH),
+        .DATA_WIDTH(DATA_WIDTH),
+        .CACHE_SIZE(CACHE_SIZE),
+        .BLOCK_SIZE(BLOCK_SIZE),
+        .OFFSET_WIDTH(OFFSET_WIDTH)
+    ) dut (
         .clk(clk),
         .reset(reset),
-        .read_enable(read_enable),
-        .write_enable(write_enable),
-        .address(address),
-        .write_data(write_data),
-        .read_data(read_data),
-        .hit_miss_indicator(hit_miss_indicator),
-        .total_requests(total_requests),
-        .hits(hits),
-        .misses(misses)
+        .read(read),
+        .write(write),
+        .tag(tag),
+        .offset(offset), // Pass offset
+        .data_in(data_in),
+        .data_out(data_out),
+        .cache_hit(cache_hit),
+        .cache_miss(cache_miss),
+        .hit_counter(hit_counter),
+        .miss_counter(miss_counter),
+        .total_requests(total_requests)
     );
 
     // Clock generation
-    always #5 clk = ~clk;
+    always #5 clk = ~clk;  // 10ns clock period
 
+    // Testbench logic
     initial begin
         // Initialize inputs
         clk = 0;
         reset = 1;
-        read_enable = 0;
-        write_enable = 0;
-        address = 0;
-        write_data = 0;
+        read = 0;
+        write = 0;
+        tag = 16'h0000;
+        offset = 2'b00;
+        data_in = 16'h0000;
 
-        // Reset the system
+        // Apply reset
         #10 reset = 0;
 
-        // Test cases
-        #10 address = 16'h0010; read_enable = 1; // Read miss
-        #10 address = 16'h0020; read_enable = 1; // Read miss
-        #10 address = 16'h0010; read_enable = 1; // Read hit
-        #10 address = 16'h0010; write_enable = 1; write_data = 128'hDEADBEEFDEADBEEF; // Write hit
+        // Initialize main memory (preload blocks)
+        for (integer i = 0; i < (1 << TAG_WIDTH); i = i + 1) begin
+            for (integer j = 0; j < BLOCK_SIZE; j = j + 1) begin
+                dut.main_memory[i][j] = i * BLOCK_SIZE + j; // Dummy data
+            end
+        end
 
-        #50 $finish;
-    end
+        // Perform a read with offset
+        #10 tag = 16'h0010; offset = 2'b01; read = 1; #10 read = 0;
+        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
 
-    // Monitor the outputs during simulation
-    initial begin
-        $monitor("Time: %0t | Addr: %h | Hit/Miss: %b | Read Data: %h | Hits: %0d | Misses: %0d | Total Requests: %0d",
-                 $time, address, hit_miss_indicator, read_data, hits, misses, total_requests);
+        // Perform another read to check cache hit
+        #10 tag = 16'h0010; offset = 2'b10; read = 1; #10 read = 0;
+        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+        // Perform a read with a different tag
+        #10 tag = 16'h0011; offset = 2'b00; read = 1; #10 read = 0;
+        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+        // Perform a write operation
+        #10 tag = 16'h0030; offset = 2'b11; data_in = 16'hCCCC; write = 1; #10 write = 0;
+        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+        // Read back the written data
+        #10 tag = 16'h0030; offset = 2'b11; read = 1; #10 read = 0;
+        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
+        // Display final hit/miss counters
+       
+
+        // Finish simulation
+        #10 $finish;
     end
 endmodule
