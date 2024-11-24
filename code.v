@@ -27,14 +27,12 @@ module main(
     reg [TAG_WIDTH-1:0] tag_array [CACHE_SIZE-1:0];
     reg valid_array [CACHE_SIZE-1:0];
 
-    reg [DATA_WIDTH-1:0] main_memory [0:(1 << TAG_WIDTH)-1];  // Simulate main memory
+    reg [DATA_WIDTH-1:0] main_memory [0:(1 << TAG_WIDTH)-1];
 
-    // Declare loop variable outside the procedural block
     integer i;
 
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            // Initialize cache and counters
             for (i = 0; i < CACHE_SIZE; i = i + 1) begin
                 valid_array[i] <= 0;
                 tag_array[i] <= 0;
@@ -45,29 +43,24 @@ module main(
             total_requests <= 0;
         end else if (read) begin
             if (valid_array[index] && tag_array[index] == tag) begin
-                // Cache hit
                 cache_hit <= 1;
                 cache_miss <= 0;
                 hit_counter <= hit_counter + 1;
                 total_requests <= total_requests + 1;
                 data_out <= data_array[index];
             end else begin
-                // Cache miss
                 cache_hit <= 0;
                 cache_miss <= 1;
                 miss_counter <= miss_counter + 1;
                 total_requests <= total_requests + 1;
                 
-                // Fetch data from main memory
-                data_array[index] <= main_memory[tag];  // Simulate fetching by combining tag and index
+                data_array[index] <= main_memory[tag];
                 tag_array[index] <= tag;
                 valid_array[index] <= 1;
                 
-                // Output fetched data
                 data_out <= main_memory[tag];
             end
         end else if (write) begin
-            // Handle write operation (if necessary, write-through logic can be added)
             data_array[index] <= data_in;
             tag_array[index] <= tag;
             valid_array[index] <= 1;
@@ -101,8 +94,11 @@ module main_tb;
     wire [31:0] hit_counter;
     wire [31:0] miss_counter;
     wire [31:0] total_requests;
+    
+    integer start_time;
+    integer end_time;
+    real delay_time;
 
-    // Instantiate the DUT (Device Under Test)
     main #(
         .TAG_WIDTH(TAG_WIDTH),
         .DATA_WIDTH(DATA_WIDTH),
@@ -122,12 +118,10 @@ module main_tb;
         .total_requests(total_requests)
     );
 
-    // Clock generation
     always #5 clk = ~clk;  // 10ns clock period
 
-    // Testbench logic
     initial begin
-        // Initialize inputs
+        
         clk = 0;
         reset = 1;
         read = 0;
@@ -135,60 +129,32 @@ module main_tb;
         tag = 16'h0000;
         data_in = 16'h0000;
 
-        // Apply reset
         #10 reset = 0;
 
-        // Initialize main memory (simulate preloading some data)
-        dut.main_memory[16'h0010] = 16'hAAAA;  // Example tag/data
-        dut.main_memory[16'h1111] = 16'hBBBB;
-        dut.main_memory[16'h1211] = 16'hBBBB;
-        dut.main_memory[16'h2311] = 16'hBBBB;
+        dut.main_memory[16'h0010] = 16'hAAAA;
+        dut.main_memory[16'h2300] = 16'hBBBB;
+        
+        start_time = $time;
 
-        // Perform a read
         #10 tag = 16'h0010;
         read = 1;
         #10 read = 0;
-
-        // Perform another read to the same tag
-        #10 tag = 16'h0010;
-        read = 1;
-        #10 read = 0;
-
-        // Perform a read to a different tag 
-        #10 tag = 16'h0011;
-        read = 1;
-        #10 read = 0;
-
-
-        // Read back the written data 
-        #10 tag = 16'h0020;
-        read = 1;
-        #10 read = 0;
-
-        // Perform a write
-        #10 tag = 16'h0030;
-        data_in = 16'hCCCC;
-        write = 1;
-        #10 write = 0;
-        
-        #10 tag = 16'h0030;
-        read = 1;
-        #10 read = 0;
-        
-        #10 tag = 16'h2200;
-        read = 1;
-        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
         
         #10 tag = 16'h2300;
         read = 1;
         #10 read = 0;
-        
-        // Display final hit/miss counters
-        #10;
-        $display("Hit Counter: %d", hit_counter);
-        $display("Miss Counter: %d", miss_counter);
+        $display("Tag: 0x%h | Data Out: 0x%h| Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
+         tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
 
-        // Finish simulation
+        end_time = $time;
+        
+        delay_time = (end_time - start_time) * 1.0;
+        
+        #10;
+        $display("Delay Time: %0.2f", delay_time);
+
         #10 $finish;
     end
 endmodule
