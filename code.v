@@ -136,7 +136,6 @@ module main_tb;
 
     // Clock generation
     always #5 clk = ~clk;  // 10ns clock period
-    start_time = $time;
 
     initial begin
         clk = 0;
@@ -156,29 +155,14 @@ module main_tb;
                 dut.main_memory[i][j] = i * BLOCK_SIZE + j;
             end
         end
+        
+        start_time = $time;
 
-        // Perform a read with offset
-        #10 tag = 16'h0010; offset = 2'b01; read = 1; #10 read = 0;
-        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
-         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
-
-        // Perform another read to check cache hit
-        #10 tag = 16'h0010; offset = 2'b10; read = 1; #10 read = 0;
-        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
-         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
-        // Perform a read with a different tag
-        #10 tag = 16'h0011; offset = 2'b00; read = 1; #10 read = 0;
-        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
-         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
-        // Perform a write operation
-        #10 tag = 16'h0030; offset = 2'b11; data_in = 16'hCCCC; write = 1; #10 write = 0;
-        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
-         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
-        // Read back the written data
-        #10 tag = 16'h0030; offset = 2'b11; read = 1; #10 read = 0;
-        $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
-         $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
-        // Display final hit/miss counters
+        #10 tag = 16'h42bb;
+        offset = 2'b10;
+        read = 1;
+        #10 read = 0;
+        $display("Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
 
         end_time = $time;
         delay_time = (end_time - start_time) * 1.0;
