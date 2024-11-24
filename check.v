@@ -109,6 +109,7 @@ endmodule
 
 
 
+
 module Testbench;
     parameter ADDR_WIDTH = 16;
     parameter BLOCK_SIZE = 16;
@@ -121,6 +122,7 @@ module Testbench;
     wire hit_miss_indicator;
     wire [31:0] total_requests, hits, misses;
 
+    // Instantiate the cache
     DirectMappedCache #(ADDR_WIDTH, BLOCK_SIZE, CACHE_LINES) cache (
         .clk(clk),
         .reset(reset),
@@ -157,5 +159,11 @@ module Testbench;
         #10 address = 16'h0010; write_enable = 1; write_data = 128'hDEADBEEFDEADBEEF; // Write hit
 
         #50 $finish;
+    end
+
+    // Monitor the outputs during simulation
+    initial begin
+        $monitor("Time: %0t | Addr: %h | Hit/Miss: %b | Read Data: %h | Hits: %0d | Misses: %0d | Total Requests: %0d",
+                 $time, address, hit_miss_indicator, read_data, hits, misses, total_requests);
     end
 endmodule
