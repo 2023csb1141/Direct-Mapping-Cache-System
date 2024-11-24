@@ -4,7 +4,7 @@ module main(
     input read,
     input write,
     input [TAG_WIDTH-1:0] tag,
-    input [OFFSET_WIDTH-1:0] offset,  // Added offset input
+    input [OFFSET_WIDTH-1:0] offset,
     input [DATA_WIDTH-1:0] data_in,
     output reg [DATA_WIDTH-1:0] data_out,
     output reg cache_hit,
@@ -17,20 +17,18 @@ module main(
     parameter DATA_WIDTH = 16;
     parameter TAG_WIDTH = 16;
     parameter CACHE_SIZE = 16;
-    parameter BLOCK_SIZE = 4;       // Number of words per block
-    parameter OFFSET_WIDTH = 2;     // log2(BLOCK_SIZE)
+    parameter BLOCK_SIZE = 4; 
+    parameter OFFSET_WIDTH = 2;
 
     localparam INDEX_WIDTH = $clog2(CACHE_SIZE);
 
     wire [INDEX_WIDTH-1:0] index = tag[INDEX_WIDTH-1:0];
 
-    // Cache storage
-    reg [DATA_WIDTH-1:0] data_array [CACHE_SIZE-1:0][BLOCK_SIZE-1:0]; // Cache stores blocks
+    reg [DATA_WIDTH-1:0] data_array [CACHE_SIZE-1:0][BLOCK_SIZE-1:0];
     reg [TAG_WIDTH-1:0] tag_array [CACHE_SIZE-1:0];
     reg valid_array [CACHE_SIZE-1:0];
 
-    // Main memory simulation
-    reg [DATA_WIDTH-1:0] main_memory [0:(1 << TAG_WIDTH)-1][BLOCK_SIZE-1:0]; // Main memory stores blocks
+    reg [DATA_WIDTH-1:0] main_memory [0:(1 << TAG_WIDTH)-1][BLOCK_SIZE-1:0]; 
 
     integer i, j;
 
@@ -54,7 +52,7 @@ module main(
                 cache_miss <= 0;
                 hit_counter <= hit_counter + 1;
                 total_requests <= total_requests + 1;
-                data_out <= data_array[index][offset]; // Fetch data using offset
+                data_out <= data_array[index][offset];
             end else begin
                 // Cache miss
                 cache_hit <= 0;
@@ -69,8 +67,7 @@ module main(
                 tag_array[index] <= tag;
                 valid_array[index] <= 1;
 
-                // Output fetched data
-                data_out <= main_memory[tag][offset]; // Use offset to select word from fetched block
+                data_out <= main_memory[tag][offset];
             end
         end else if (write) begin
             // Write to specific word in block
@@ -81,6 +78,7 @@ module main(
         end
     end
 endmodule
+
 `timescale 1ns / 1ps
 
 module main_tb;
@@ -110,7 +108,10 @@ module main_tb;
     wire [31:0] miss_counter;
     wire [31:0] total_requests;
 
-    // Instantiate the DUT (Device Under Test)
+    integer start_time;
+    integer end_time;
+    real delay_time;
+
     main #(
         .TAG_WIDTH(TAG_WIDTH),
         .DATA_WIDTH(DATA_WIDTH),
@@ -123,7 +124,7 @@ module main_tb;
         .read(read),
         .write(write),
         .tag(tag),
-        .offset(offset), // Pass offset
+        .offset(offset),
         .data_in(data_in),
         .data_out(data_out),
         .cache_hit(cache_hit),
@@ -135,10 +136,9 @@ module main_tb;
 
     // Clock generation
     always #5 clk = ~clk;  // 10ns clock period
+    start_time = $time;
 
-    // Testbench logic
     initial begin
-        // Initialize inputs
         clk = 0;
         reset = 1;
         read = 0;
@@ -147,13 +147,13 @@ module main_tb;
         offset = 2'b00;
         data_in = 16'h0000;
 
-        // Apply reset
         #10 reset = 0;
 
-        // Initialize main memory (preload blocks)
+        start_time = $time;
+
         for (integer i = 0; i < (1 << TAG_WIDTH); i = i + 1) begin
             for (integer j = 0; j < BLOCK_SIZE; j = j + 1) begin
-                dut.main_memory[i][j] = i * BLOCK_SIZE + j; // Dummy data
+                dut.main_memory[i][j] = i * BLOCK_SIZE + j;
             end
         end
 
@@ -179,9 +179,16 @@ module main_tb;
         $display("Time: %0t | Tag: 0x%h | Data Out: 0x%h | Cache Hit: %d | Cache Miss: %d | Hit Counter: %d | Miss Counter: %d | Total Requests: %d", 
          $time, tag, data_out, cache_hit, cache_miss, hit_counter, miss_counter, total_requests);
         // Display final hit/miss counters
-       
 
-        // Finish simulation
+        end_time = $time;
+        delay_time = (end_time - start_time) * 1.0;
+        
+        #10;
+        $display("Delay Time: %0.2f", delay_time);
+        $display("Hits: %d ",hit_counter);
+        $display("Misses: %d ",miss_counter);
+
         #10 $finish;
+        
     end
 endmodule
