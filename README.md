@@ -30,7 +30,7 @@ This project implements a Direct Mapping Cache system using Verilog to simulate 
   - **Write**: Writes data to cache if present; loads from memory if not.
 - **Statistics Reporting**: Displays request counts, hits, misses, and hit/miss ratios.
 
-### Inputs, Outputs, and Constraints
+### Inputs, Outputs and Constraints
 
 - **Inputs**:
   - `Memory Address`: Configurable n-bit input address.
